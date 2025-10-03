@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Gerador IABox</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    pre {
+      background: #111827;
+      color: #f9fafb;
+      padding: 10px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      margin-top: 10px;
+    }
+    a.bookmarklet {
+      display: inline-block;
+      background: #10b981;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-top: 10px;
+      text-decoration: none;
+    }
+    .output {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 Gerador de Snippet IABox</h1>
+    <p>Clique no botão abaixo para gerar seu código personalizado e instalar o chat no seu site.</p>
+    <button onclick="gerarCodigo()">Gerar meu código</button>
+
+    <div class="output" id="output"></div>
+  </div>
+
+  <script>
+    function gerarSiteId() {
+      return 'site-' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function gerarCodigo() {
+      const siteId = gerarSiteId();
+      const baseUrl = "https://teste-egal-e-ofical-da-parada-c1e014bdi-betaodopedacos-projects.vercel.app/iabox.js";
+
+      // Snippet universal
+      const snippet = `
+<!-- IABox - cole antes do </body> -->
+<script>
+(function(w,d){
+  if(w.__iabox_loaded) return;
+  w.__iabox_loaded = true;
+
+  var s = d.createElement('script');
+  s.src = '${baseUrl}';
+  s.async = true;
+
+  s.onload = function(){
+    try {
+      w.IABox && w.IABox.init({
+        siteId: '${siteId}',
+        position: 'bottom-right',
+        theme: 'auto'
+      });
+    } catch(e){ console.error(e); }
+  };
+
+  d.body.appendChild(s);
+})(window,document);
+</script>`;
+
+      // Bookmarklet
+      const bookmarklet = `javascript:(function(){if(window.__iabox_loaded)return;window.__iabox_loaded=true;var s=document.createElement('script');s.src='${baseUrl}';s.async=true;s.onload=function(){try{IABox.init({siteId:'${siteId}',position:'bottom-right',theme:'auto'});}catch(e){console.error(e);}};document.body.appendChild(s);})();`;
+
+      document.getElementById("output").innerHTML = `
+        <h2>Seu Site ID: <code>${siteId}</code></h2>
+        <h3>Snippet Universal:</h3>
+        <pre>${snippet.replace(/</g,"&lt;")}</pre>
+        <h3>Bookmarklet (arraste para a barra de favoritos):</h3>
+        <a class="bookmarklet" href="${bookmarklet}">IABox 🚀</a>
+      `;
+    }
+  </script>
+</body>
+</html>
