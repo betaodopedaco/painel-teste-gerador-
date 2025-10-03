@@ -1,92 +1,80 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
   <title>Gerador IABox</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f3f4f6;
-      margin: 0;
-      padding: 20px;
-    }
-    .container {
-      max-width: 800px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    h1 {
-      text-align: center;
-    }
-    button {
-      background: #2563eb;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-      margin-top: 10px;
-    }
-    button:hover {
-      background: #1d4ed8;
-    }
-    pre {
-      background: #111827;
-      color: #f9fafb;
-      padding: 10px;
-      border-radius: 8px;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      margin-top: 10px;
-    }
-    a.bookmarklet {
-      display: inline-block;
-      background: #10b981;
-      color: white;
-      padding: 8px 12px;
-      border-radius: 6px;
-      margin-top: 10px;
-      text-decoration: none;
-    }
-    .output {
-      margin-top: 20px;
-    }
+    body{font-family:Inter,system-ui,Arial;margin:0;background:#f3f4f6;padding:20px}
+    .wrap{max-width:900px;margin:20px auto;background:#fff;border-radius:12px;padding:20px;box-shadow:0 6px 24px rgba(0,0,0,.08)}
+    h1{margin:0 0 8px}
+    pre{background:#0b1220;color:#e6eef8;padding:12px;border-radius:8px;overflow:auto}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    button, a.book{background:#2563eb;color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-block}
+    button.secondary{background:#111827}
+    .info{margin-top:12px;color:#374151}
+    code{background:#eef2ff;padding:4px 6px;border-radius:6px}
+    .box{margin-top:14px}
+    input[type="text"]{padding:8px;border-radius:8px;border:1px solid #e5e7eb;width:100%}
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="wrap">
     <h1>🚀 Gerador de Snippet IABox</h1>
-    <p>Clique no botão abaixo para gerar seu código personalizado e instalar o chat no seu site.</p>
-    <button onclick="gerarCodigo()">Gerar meu código</button>
+    <p class="info">Clique em "Gerar meu código". O painel verifica se <code>/iabox.js</code> existe no mesmo host e mostra o snippet + bookmarklet prontos para copiar.</p>
 
-    <div class="output" id="output"></div>
+    <div class="box">
+      <label>Base URL do script (padrão: este domínio):</label>
+      <input id="baseUrlInput" type="text" value="" />
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <button onclick="gerarCodigo()">Gerar meu código</button>
+      <button class="secondary" onclick="checarScript()">Verificar /iabox.js</button>
+      <button class="secondary" onclick="testeLocal()">Como testar local</button>
+    </div>
+
+    <div id="status" class="info"></div>
+
+    <div id="output" style="margin-top:16px"></div>
   </div>
 
-  <script>
-    function gerarSiteId() {
-      return 'site-' + Math.random().toString(36).substr(2, 9);
+<script>
+(function(){
+  const defaultBase = window.location.origin;
+  document.getElementById('baseUrlInput').value = defaultBase;
+
+  function gerarSiteId(){
+    return 'site-' + Math.random().toString(36).slice(2,11);
+  }
+
+  window.checarScript = async function(){
+    const base = document.getElementById('baseUrlInput').value.trim() || defaultBase;
+    const url = base.replace(/\/$/,'') + '/iabox.js';
+    document.getElementById('status').textContent = 'Verificando ' + url + ' ...';
+    try{
+      const r = await fetch(url, {method:'GET',cache:'no-store'});
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      document.getElementById('status').textContent = 'OK — /iabox.js encontrado em: ' + url;
+    }catch(e){
+      document.getElementById('status').textContent = 'ERRO: não foi possível carregar ' + url + ' — ' + e.message;
     }
+  };
 
-    function gerarCodigo() {
-      const siteId = gerarSiteId();
-      const baseUrl = "https://teste-egal-e-ofical-da-parada-c1e014bdi-betaodopedacos-projects.vercel.app/iabox.js";
+  window.gerarCodigo = function(){
+    const siteId = gerarSiteId();
+    const base = document.getElementById('baseUrlInput').value.trim() || defaultBase;
+    const baseClean = base.replace(/\/$/,'');
+    const baseUrl = baseClean + '/iabox.js';
 
-      // Snippet universal
-      const snippet = `
-<!-- IABox - cole antes do </body> -->
+    const snippet = `<!-- IABox - cole antes do </body> -->
 <script>
 (function(w,d){
   if(w.__iabox_loaded) return;
   w.__iabox_loaded = true;
-
   var s = d.createElement('script');
   s.src = '${baseUrl}';
   s.async = true;
-
   s.onload = function(){
     try {
       w.IABox && w.IABox.init({
@@ -96,22 +84,50 @@
       });
     } catch(e){ console.error(e); }
   };
-
   d.body.appendChild(s);
 })(window,document);
 </script>`;
 
-      // Bookmarklet
-      const bookmarklet = `javascript:(function(){if(window.__iabox_loaded)return;window.__iabox_loaded=true;var s=document.createElement('script');s.src='${baseUrl}';s.async=true;s.onload=function(){try{IABox.init({siteId:'${siteId}',position:'bottom-right',theme:'auto'});}catch(e){console.error(e);}};document.body.appendChild(s);})();`;
+    const bookmarklet = `javascript:(function(){if(window.__iabox_loaded)return;window.__iabox_loaded=true;var s=document.createElement('script');s.src='${baseUrl}';s.async=true;s.onload=function(){try{IABox.init({siteId:'${siteId}',position:'bottom-right',theme:'auto'});}catch(e){console.error(e);}};document.body.appendChild(s);})();`;
 
-      document.getElementById("output").innerHTML = `
-        <h2>Seu Site ID: <code>${siteId}</code></h2>
-        <h3>Snippet Universal:</h3>
-        <pre>${snippet.replace(/</g,"&lt;")}</pre>
-        <h3>Bookmarklet (arraste para a barra de favoritos):</h3>
-        <a class="bookmarklet" href="${bookmarklet}">IABox 🚀</a>
-      `;
-    }
-  </script>
+    const out = document.getElementById('output');
+    out.innerHTML = `
+      <h3>Seu Site ID: <code>${siteId}</code></h3>
+      <h4>Snippet (copiar e colar antes do &lt;/body&gt;)</h4>
+      <pre id="snippetPre">${escapeHtml(snippet)}</pre>
+      <div class="row">
+        <button onclick="copyText(document.getElementById('snippetPre').innerText)">Copiar Snippet</button>
+      </div>
+
+      <h4 style="margin-top:12px">Bookmarklet (arraste o botão para a barra de favoritos)</h4>
+      <a class="book" id="bookmark" href="${bookmarklet}">IABox 🚀 (arraste-me)</a>
+      <div style="margin-top:8px">
+        <button onclick="copyText('${bookmarklet.replace(/'/g,\"' + \" + \"'\" )}')">Copiar Bookmarklet</button>
+      </div>
+      <p class="info" style="margin-top:8px">Teste rápido: abra qualquer site, cole o snippet no console ou clique no bookmarklet.</p>
+    `;
+    document.getElementById('status').textContent = 'Gerado — verifique /iabox.js com o botão "Verificar /iabox.js"';
+  };
+
+  window.copyText = function(text){
+    const t = document.createElement('textarea');
+    t.value = text;
+    document.body.appendChild(t);
+    t.select();
+    document.execCommand('copy');
+    document.body.removeChild(t);
+    alert('Copiado para o clipboard!');
+  };
+
+  window.testeLocal = function(){
+    alert('Testar local: abra uma pasta com estes arquivos e rode:\n\npython3 -m http.server 8000\n\nDepois abra http://localhost:8000/ e clique em Verificar /iabox.js');
+  };
+
+  function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  window.gerarCodigo = window.gerarCodigo.bind(window);
+
+})();
+</script>
 </body>
 </html>
