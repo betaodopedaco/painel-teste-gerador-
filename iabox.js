@@ -1,93 +1,133 @@
-(function () {
-  // Evita carregar 2 vezes
-  if (window.IABoxLoaded) return;
+// iabox.js - IABox minimal (coloque na raiz do repo como /iabox.js)
+(function(){
+  // evita carregar 2x
+  if(window.IABoxLoaded) return;
   window.IABoxLoaded = true;
 
-  // Cria container
-  const box = document.createElement("div");
-  box.id = "iabox-container";
-  box.style.position = "fixed";
-  box.style.bottom = "20px";
-  box.style.right = "20px";
-  box.style.width = "300px";
-  box.style.height = "400px";
-  box.style.background = "#fff";
-  box.style.border = "1px solid #ccc";
-  box.style.borderRadius = "10px";
-  box.style.boxShadow = "0 4px 10px rgba(0,0,0,0.2)";
-  box.style.display = "flex";
-  box.style.flexDirection = "column";
-  box.style.overflow = "hidden";
-  box.style.fontFamily = "Arial, sans-serif";
-  document.body.appendChild(box);
+  // cria uma função globalia para possível uso externo
+  window.IABox = window.IABox || {};
+  window.IABox.__version = 'v1';
 
-  // Cabeçalho
-  const header = document.createElement("div");
-  header.style.background = "#4CAF50";
-  header.style.color = "#fff";
-  header.style.padding = "10px";
-  header.style.fontWeight = "bold";
-  header.innerText = "🤖 IABox Chat";
-  box.appendChild(header);
+  window.IABox.init = function(config){
+    try {
+      var siteId = (config && config.siteId) ? config.siteId : 'unknown';
 
-  // Área de mensagens
-  const messages = document.createElement("div");
-  messages.style.flex = "1";
-  messages.style.padding = "10px";
-  messages.style.overflowY = "auto";
-  messages.style.fontSize = "14px";
-  box.appendChild(messages);
+      // evita reinserir com mesmo siteId
+      if(document.querySelector('#iabox-root[data-siteid="'+siteId+'"]')) return;
 
-  // Input
-  const inputWrap = document.createElement("div");
-  inputWrap.style.display = "flex";
-  inputWrap.style.borderTop = "1px solid #ccc";
-  const input = document.createElement("input");
-  input.type = "text";
-  input.placeholder = "Digite sua mensagem...";
-  input.style.flex = "1";
-  input.style.border = "none";
-  input.style.padding = "10px";
-  const btn = document.createElement("button");
-  btn.innerText = "Enviar";
-  btn.style.background = "#4CAF50";
-  btn.style.color = "#fff";
-  btn.style.border = "none";
-  btn.style.padding = "10px";
-  btn.style.cursor = "pointer";
-  inputWrap.appendChild(input);
-  inputWrap.appendChild(btn);
-  box.appendChild(inputWrap);
+      // root host
+      var host = document.createElement('div');
+      host.id = 'iabox-root';
+      host.setAttribute('data-siteid', siteId);
+      host.style.all = 'initial';
+      host.style.position = 'fixed';
+      host.style.zIndex = 2147483647; // máximo
 
-  // Função de enviar
-  function sendMessage(text, from = "user") {
-    const msg = document.createElement("div");
-    msg.style.margin = "5px 0";
-    msg.style.padding = "8px";
-    msg.style.borderRadius = "6px";
-    msg.style.maxWidth = "80%";
-    msg.style.clear = "both";
-    if (from === "user") {
-      msg.style.background = "#e1ffc7";
-      msg.style.alignSelf = "flex-end";
-      msg.innerText = "👤 " + text;
-    } else {
-      msg.style.background = "#f0f0f0";
-      msg.innerText = "🤖 " + text;
+      // shadow DOM para evitar conflito de CSS
+      var shadow = host.attachShadow({mode:'open'});
+
+      // markup
+      var style = document.createElement('style');
+      style.textContent = '\
+        .iabox-btn{position:fixed;bottom:20px;right:20px;background:#2563eb;color:#fff;padding:12px 14px;border-radius:16px;cursor:pointer;font-family:Arial,Helvetica,sans-serif;box-shadow:0 8px 30px rgba(37,99,235,.18);border:none}\
+        .iabox-panel{position:fixed;bottom:80px;right:20px;width:320px;height:420px;background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(2,6,23,.2);display:flex;flex-direction:column;overflow:hidden;font-family:Arial,Helvetica,sans-serif}\
+        .iabox-header{padding:10px;background:#111827;color:#fff;font-weight:600;display:flex;justify-content:space-between;align-items:center}\
+        .iabox-body{padding:12px;flex:1;overflow:auto;background:#f8fafc}\
+        .iabox-footer{display:flex;padding:10px;border-top:1px solid #e6edf6}\
+        .iabox-footer input{flex:1;padding:8px;border-radius:8px;border:1px solid #e2e8f0}\
+        .iabox-footer button{margin-left:8px;padding:8px 10px;border-radius:8px;border:none;background:#2563eb;color:#fff;cursor:pointer}\
+      ';
+
+      // button open
+      var openBtn = document.createElement('button');
+      openBtn.className = 'iabox-btn';
+      openBtn.textContent = '💬 IABox';
+      openBtn.onclick = togglePanel;
+
+      // panel
+      var panel = document.createElement('div');
+      panel.className = 'iabox-panel';
+      panel.style.display = 'none';
+
+      var header = document.createElement('div');
+      header.className = 'iabox-header';
+      header.innerHTML = '<span>IABox</span><span style="cursor:pointer" id="iabox-close">×</span>';
+
+      var body = document.createElement('div');
+      body.className = 'iabox-body';
+      body.innerHTML = '<div style="color:#374151">Olá — IABox ativo para <strong>' + siteId + '</strong>.</div><div style="margin-top:10px;color:#6b7280">Resposta de exemplo. Integre sua lógica de backend/AI aqui.</div>';
+
+      var footer = document.createElement('div');
+      footer.className = 'iabox-footer';
+      var input = document.createElement('input');
+      input.placeholder = 'Digite sua mensagem...';
+      var send = document.createElement('button');
+      send.textContent = 'Enviar';
+      footer.appendChild(input);
+      footer.appendChild(send);
+
+      panel.appendChild(header);
+      panel.appendChild(body);
+      panel.appendChild(footer);
+
+      // append styles + nodes to shadow
+      shadow.appendChild(style);
+      shadow.appendChild(openBtn);
+      shadow.appendChild(panel);
+
+      // add host to DOM
+      document.documentElement.appendChild(host);
+
+      // events
+      shadow.getElementById('iabox-close').onclick = function(){
+        panel.style.display = 'none';
+        openBtn.style.display = 'block';
+      };
+
+      send.onclick = function(){
+        var text = input.value && input.value.trim();
+        if(!text) return;
+        var el = document.createElement('div');
+        el.style.marginTop = '8px';
+        el.style.padding = '8px';
+        el.style.background = '#e1ffc7';
+        el.style.borderRadius = '8px';
+        el.textContent = 'Você: ' + text;
+        body.appendChild(el);
+        input.value = '';
+        body.scrollTop = body.scrollHeight;
+
+        // simulate resposta
+        setTimeout(function(){
+          var r = document.createElement('div');
+          r.style.marginTop = '8px';
+          r.style.padding = '8px';
+          r.style.background = '#f0f0f0';
+          r.style.borderRadius = '8px';
+          r.textContent = 'IA: Recebi "' + text + '"';
+          body.appendChild(r);
+          body.scrollTop = body.scrollHeight;
+        }, 600);
+      };
+
+      function togglePanel(){
+        if(panel.style.display === 'none' || panel.style.display === ''){
+          panel.style.display = 'flex';
+          openBtn.style.display = 'none';
+        } else {
+          panel.style.display = 'none';
+          openBtn.style.display = 'block';
+        }
+      }
+
+      // allow external open
+      window.IABox.open = togglePanel;
+
+    } catch (err) {
+      console.error('IABox error:', err);
     }
-    messages.appendChild(msg);
-    messages.scrollTop = messages.scrollHeight;
-  }
-
-  btn.onclick = () => {
-    const text = input.value.trim();
-    if (!text) return;
-    sendMessage(text, "user");
-    input.value = "";
-
-    // Simula resposta da IA (aqui você integra sua lógica de IA real)
-    setTimeout(() => {
-      sendMessage("Recebi sua mensagem: " + text, "bot");
-    }, 600);
   };
+
+  // auto-init fallback (não obrigatório) -> apenas se desejar inicializar sem init()
+  // window.IABox.init && window.IABox.init({siteId:'auto-' + Math.random().toString(36).slice(2,6)});
 })();
