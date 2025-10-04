@@ -1,75 +1,98 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>IABox - Painel</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 30px;
-      background: #f5f5f5;
-    }
-    h1 {
-      color: #333;
-    }
-    textarea {
-      width: 100%;
-      height: 100px;
-      margin-top: 10px;
-      padding: 10px;
-      font-size: 14px;
-    }
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    .drag-btn {
-      display: inline-block;
-      margin-top: 20px;
-      background: #4CAF50;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: bold;
-    }
+    body{font-family:Arial,Helvetica,sans-serif;background:#f3f4f6;padding:28px}
+    .wrap{max-width:900px;margin:0 auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
+    h1{margin:0 0 8px}
+    textarea{width:100%;height:120px;padding:10px;border-radius:8px;border:1px solid #e5e7eb;font-size:13px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    button, a.book{background:#2563eb;color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;text-decoration:none}
+    a.book{background:#10b981}
+    .note{color:#374151;margin-top:10px}
+    code{background:#eef2ff;padding:2px 6px;border-radius:6px}
   </style>
 </head>
 <body>
-  <h1>🚀 IABox - Gerador de Snippet</h1>
-  <p>Copie o código abaixo e cole no seu site, antes de <code>&lt;/body&gt;</code>:</p>
+  <div class="wrap">
+    <h1>🚀 IABox - Gerador de Snippet</h1>
+    <p class="note">Copie o código abaixo e cole no seu site antes de <code>&lt;/body&gt;</code>, ou arraste o botão para a barra de favoritos (bookmarklet).</p>
 
-  <textarea id="codigo" readonly></textarea>
-  <br />
-  <button onclick="copyText('codigo')">📋 Copiar código</button>
+    <label><strong>Snippet para copiar (cole antes de &lt;/body&gt;):</strong></label>
+    <textarea id="codigo" readonly></textarea>
 
-  <p>Ou arraste o botão abaixo para sua barra de favoritos:</p>
-  <a id="dragBtn" href="#" class="drag-btn">IABox 🚀 (arraste-me)</a>
+    <div class="row">
+      <button id="btnCopy">📋 Copiar código</button>
+      <button id="btnGen">🔁 Gerar novo snippet</button>
+      <a id="dragBtn" class="book" href="#">IABox 🚀 (arraste-me)</a>
+    </div>
+
+    <p class="note" id="status">Status: pronto</p>
+  </div>
 
   <script>
-    // Ajusta a URL do seu domínio no Vercel:
-    const SCRIPT_URL = "painel-teste-gerador.vercel.app";
+    // === TROCA SÓ SE SUA URL FOR DIFERENTE ===
+    const SCRIPT_URL = "https://teste-egal-e-ofical-da-parada-c1e014bdi-betaodopedacos-projects.vercel.app/iabox.js";
+    // =========================================
 
-    // Preenche o código para copiar
-    document.getElementById("codigo").value =
-`<script src="${SCRIPT_URL}"></script>`;
-
-    // Botão de arrastar (bookmarklet)
-    document.getElementById("dragBtn").setAttribute(
-      "href",
-      `javascript:(function(){var s=document.createElement('script');s.src='${SCRIPT_URL}';document.body.appendChild(s);})();`
-    );
-
-    // Função de copiar
-    function copyText(id) {
-      const el = document.getElementById(id);
-      navigator.clipboard.writeText(el.value || el.innerText).then(() => {
-        alert("Copiado com sucesso!");
-      });
+    // Gera siteId simples (não precisa backend por enquanto)
+    function gerarSiteId(){
+      return 'site-' + Math.random().toString(36).slice(2,10);
     }
+
+    // Monta snippet completo (URL absoluta + init para garantir carregamento)
+    function montarSnippet(siteId){
+      // Se quiser só o <script src="..."></script> substitua por essa linha simples.
+      return `<script>(function(w,d){if(w.__iabox_loaded)return;w.__iabox_loaded=true;var s=d.createElement('script');s.src='${SCRIPT_URL}';s.async=true;s.onload=function(){try{if(window.IABox && window.IABox.init){window.IABox.init({siteId:'${siteId}',position:'bottom-right',theme:'auto'});} }catch(e){console.error(e);}};d.body.appendChild(s);})(window,document);</script>`;
+    }
+
+    // Monta bookmarklet (usa URL absoluta)
+    function montarBookmarklet(siteId){
+      // encodeURIComponent não é necessário aqui mas manter simples
+      const body = `if(window.__iabox_loaded){}else{window.__iabox_loaded=true;var s=document.createElement('script');s.src='${SCRIPT_URL}';s.async=true;s.onload=function(){try{if(window.IABox && window.IABox.init){window.IABox.init({siteId:'${siteId}',position:'bottom-right',theme:'auto'});} }catch(e){console.error(e);}};document.body.appendChild(s);}`;
+      return 'javascript:(function(){' + body + '})();';
+    }
+
+    // Expor funções no window para garantir escopo global (evita copyText undefined)
+    window.copyText = function(elId){
+      const el = document.getElementById(elId);
+      if(!el) return alert('Elemento não encontrado');
+      const text = el.value || el.innerText;
+      navigator.clipboard.writeText(text).then(()=>{
+        alert('Copiado para o clipboard!');
+      }).catch(err=>{
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try{ document.execCommand('copy'); alert('Copiado!'); }catch(e){ alert('Erro ao copiar'); }
+        ta.remove();
+      });
+    };
+
+    // Geração inicial
+    function gerarEAtualizar(){
+      const id = gerarSiteId();
+      const snippet = montarSnippet(id);
+      const bookmarklet = montarBookmarklet(id);
+
+      document.getElementById('codigo').value = snippet;
+      const drag = document.getElementById('dragBtn');
+      drag.setAttribute('href', bookmarklet);
+      drag.setAttribute('title', 'Arraste para a barra de favoritos para criar o bookmarklet IABox');
+      document.getElementById('status').innerText = 'Status: snippet gerado — Site ID: ' + id;
+    }
+
+    // Eventos dos botões
+    document.getElementById('btnCopy').addEventListener('click', function(){ window.copyText('codigo'); });
+    document.getElementById('btnGen').addEventListener('click', gerarEAtualizar);
+
+    // Gera on load
+    gerarEAtualizar();
   </script>
 </body>
 </html>
