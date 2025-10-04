@@ -1,98 +1,325 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>IABox - Painel</title>
-  <style>
-    body{font-family:Arial,Helvetica,sans-serif;background:#f3f4f6;padding:28px}
-    .wrap{max-width:900px;margin:0 auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
-    h1{margin:0 0 8px}
-    textarea{width:100%;height:120px;padding:10px;border-radius:8px;border:1px solid #e5e7eb;font-size:13px}
-    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    button, a.book{background:#2563eb;color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;text-decoration:none}
-    a.book{background:#10b981}
-    .note{color:#374151;margin-top:10px}
-    code{background:#eef2ff;padding:2px 6px;border-radius:6px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IABox - Painel de Controle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .step {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .step h3 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .code-container {
+            position: relative;
+            margin: 15px 0;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            background: #fafafa;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-copy {
+            background: #2196F3;
+        }
+        
+        .btn-copy:hover {
+            background: #1976D2;
+        }
+        
+        .btn-bookmark {
+            background: #FF9800;
+        }
+        
+        .btn-bookmark:hover {
+            background: #F57C00;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .preview {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .preview-box {
+            display: inline-block;
+            width: 300px;
+            height: 400px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .preview-header {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+        }
+        
+        .preview-messages {
+            height: 300px;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        
+        .preview-input {
+            display: flex;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .preview-input input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            outline: none;
+        }
+        
+        .preview-input button {
+            padding: 12px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>🚀 IABox - Gerador de Snippet</h1>
-    <p class="note">Copie o código abaixo e cole no seu site antes de <code>&lt;/body&gt;</code>, ou arraste o botão para a barra de favoritos (bookmarklet).</p>
-
-    <label><strong>Snippet para copiar (cole antes de &lt;/body&gt;):</strong></label>
-    <textarea id="codigo" readonly></textarea>
-
-    <div class="row">
-      <button id="btnCopy">📋 Copiar código</button>
-      <button id="btnGen">🔁 Gerar novo snippet</button>
-      <a id="dragBtn" class="book" href="#">IABox 🚀 (arraste-me)</a>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 IABox</h1>
+            <p>Chatbot Inteligente para Seu Site</p>
+        </div>
+        
+        <div class="content">
+            <div class="step">
+                <h3>📋 1. Copie o Código</h3>
+                <p>Cole este código no seu site antes da tag <code>&lt;/body&gt;</code>:</p>
+                <div class="code-container">
+                    <textarea id="codigo" readonly></textarea>
+                </div>
+                <div class="buttons">
+                    <button id="btnCopy" class="btn btn-copy">
+                        📋 Copiar Código
+                    </button>
+                </div>
+            </div>
+            
+            <div class="step">
+                <h3>🧪 2. Teste Rápido</h3>
+                <p>Arraste este botão para sua barra de favoritos e clique em qualquer site para testar:</p>
+                <div class="buttons">
+                    <a id="dragBtn" class="btn btn-bookmark" draggable="true">
+                        🚀 IABox Bookmarklet
+                    </a>
+                </div>
+            </div>
+            
+            <div class="step">
+                <h3>👀 3. Preview</h3>
+                <p>Assim ficará o chatbox no seu site:</p>
+                <div class="preview">
+                    <div class="preview-box">
+                        <div class="preview-header">🤖 IABox Chat</div>
+                        <div class="preview-messages">
+                            <div style="background: #e1ffc7; padding: 8px; margin: 5px; border-radius: 6px;">
+                                Você: Olá!
+                            </div>
+                            <div style="background: #f0f0f0; padding: 8px; margin: 5px; border-radius: 6px;">
+                                IA: Bem-vindo ao IABox! 👋
+                            </div>
+                        </div>
+                        <div class="preview-input">
+                            <input type="text" placeholder="Digite sua mensagem..." value="Experimente o IABox!">
+                            <button>Enviar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>✨ Desenvolvido com ❤️ - IABox &copy; 2024</p>
+        </div>
     </div>
 
-    <p class="note" id="status">Status: pronto</p>
-  </div>
-
-  <script>
-    // === TROCA SÓ SE SUA URL FOR DIFERENTE ===
-    const SCRIPT_URL = "https://teste-egal-e-ofical-da-parada-c1e014bdi-betaodopedacos-projects.vercel.app/iabox.js";
-    // =========================================
-
-    // Gera siteId simples (não precisa backend por enquanto)
-    function gerarSiteId(){
-      return 'site-' + Math.random().toString(36).slice(2,10);
-    }
-
-    // Monta snippet completo (URL absoluta + init para garantir carregamento)
-    function montarSnippet(siteId){
-      // Se quiser só o <script src="..."></script> substitua por essa linha simples.
-      return `<script>(function(w,d){if(w.__iabox_loaded)return;w.__iabox_loaded=true;var s=d.createElement('script');s.src='${SCRIPT_URL}';s.async=true;s.onload=function(){try{if(window.IABox && window.IABox.init){window.IABox.init({siteId:'${siteId}',position:'bottom-right',theme:'auto'});} }catch(e){console.error(e);}};d.body.appendChild(s);})(window,document);</script>`;
-    }
-
-    // Monta bookmarklet (usa URL absoluta)
-    function montarBookmarklet(siteId){
-      // encodeURIComponent não é necessário aqui mas manter simples
-      const body = `if(window.__iabox_loaded){}else{window.__iabox_loaded=true;var s=document.createElement('script');s.src='${SCRIPT_URL}';s.async=true;s.onload=function(){try{if(window.IABox && window.IABox.init){window.IABox.init({siteId:'${siteId}',position:'bottom-right',theme:'auto'});} }catch(e){console.error(e);}};document.body.appendChild(s);}`;
-      return 'javascript:(function(){' + body + '})();';
-    }
-
-    // Expor funções no window para garantir escopo global (evita copyText undefined)
-    window.copyText = function(elId){
-      const el = document.getElementById(elId);
-      if(!el) return alert('Elemento não encontrado');
-      const text = el.value || el.innerText;
-      navigator.clipboard.writeText(text).then(()=>{
-        alert('Copiado para o clipboard!');
-      }).catch(err=>{
-        // fallback
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        try{ document.execCommand('copy'); alert('Copiado!'); }catch(e){ alert('Erro ao copiar'); }
-        ta.remove();
-      });
+    <script>
+        // URL será automaticamente a origem atual + /iabox.js
+        const SCRIPT_URL = window.location.origin + '/iabox.js';
+        
+        function copyText(id) {
+            const el = document.getElementById(id);
+            navigator.clipboard.writeText(el.value || el.innerText).then(() => {
+                alert("✅ Código copiado para a área de transferência!");
+            }).catch(err => {
+                console.error('Erro ao copiar:', err);
+                alert("❌ Erro ao copiar. Tente novamente.");
+            });
+        }
+        
+        function gerarSnippet() {
+            const siteId = 'site-' + Math.random().toString(36).slice(2, 11);
+            const snippet = `<script>
+(function(w,d){
+    if(w.__iabox_loaded) return;
+    w.__iabox_loaded = true;
+    var s = d.createElement("script");
+    s.src = "${SCRIPT_URL}";
+    s.async = true;
+    s.onload = function() {
+        if(window.IABox && window.IABox.init) 
+            window.IABox.init({ siteId: "${siteId}" });
     };
-
-    // Geração inicial
-    function gerarEAtualizar(){
-      const id = gerarSiteId();
-      const snippet = montarSnippet(id);
-      const bookmarklet = montarBookmarklet(id);
-
-      document.getElementById('codigo').value = snippet;
-      const drag = document.getElementById('dragBtn');
-      drag.setAttribute('href', bookmarklet);
-      drag.setAttribute('title', 'Arraste para a barra de favoritos para criar o bookmarklet IABox');
-      document.getElementById('status').innerText = 'Status: snippet gerado — Site ID: ' + id;
-    }
-
-    // Eventos dos botões
-    document.getElementById('btnCopy').addEventListener('click', function(){ window.copyText('codigo'); });
-    document.getElementById('btnGen').addEventListener('click', gerarEAtualizar);
-
-    // Gera on load
-    gerarEAtualizar();
-  </script>
+    d.body.appendChild(s);
+})(window,document);
+<\/script>`;
+            
+            document.getElementById("codigo").value = snippet;
+            
+            // Bookmarklet
+            const bookmarkletCode = `javascript:(function(){var s=document.createElement('script');s.src='${SCRIPT_URL}';document.body.appendChild(s);})();`;
+            document.getElementById("dragBtn").href = bookmarkletCode;
+        }
+        
+        // Event Listeners
+        document.getElementById("btnCopy").addEventListener("click", () => copyText("codigo"));
+        
+        // Drag and drop para bookmarklet
+        document.getElementById("dragBtn").addEventListener("dragstart", function(e) {
+            e.dataTransfer.setData("text/uri-list", this.href);
+            e.dataTransfer.setData("text/plain", this.href);
+        });
+        
+        // Inicializar
+        gerarSnippet();
+        
+        console.log("🚀 IABox Painel carregado!");
+        console.log("Script URL:", SCRIPT_URL);
+    </script>
 </body>
 </html>
